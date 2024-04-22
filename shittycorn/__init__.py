@@ -4,7 +4,6 @@ import signal
 import socket
 from wsgiref.types import WSGIApplication
 
-from . import asocket
 
 logger = logging.getLogger("shittycorn")
 logger.setLevel(logging.DEBUG)
