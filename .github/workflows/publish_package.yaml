@@ -1,0 +1,17 @@
+name: Publish Package to pypi
+jobs:
+  build_and_publish:
+    runs-on: python:latest
+    steps:
+      - name: Install build dependencies
+        run: python3 -m pip install build twine
+
+      - name: Build the package
+        run: python3 -m build
+
+      - name: Push artifacts to pypi
+        run: python3 -m twine upload 
+            --repository pypi 
+            --username ${{ secrets.PYPI_USERNAME }} 
+            --password ${{ secrets.PYPI_PASSWORD }} 
+            dist/*
