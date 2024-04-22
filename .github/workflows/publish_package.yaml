@@ -1,9 +1,5 @@
 name: Publish Package to pypi
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 jobs:
   build_and_publish:
     runs-on: python:latest
