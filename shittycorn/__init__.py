@@ -4,12 +4,41 @@ import signal
 import socket
 from wsgiref.types import WSGIApplication
 
-
 logger = logging.getLogger("shittycorn")
-logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+
+http_logger = logging.getLogger("http")
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+http_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s %(status)s \"%(method)s %(path)s\"")
+handler.setFormatter(http_formatter)
+http_logger.addHandler(handler)
+http_logger.setLevel(logging.INFO)
+
+
+def log_response(
+        status: str,
+        address: tuple[str, int],
+        method: str,
+        path: str,
+):
+    level = logging.INFO if status.startswith("2") or status.startswith("3") else logging.ERROR
+    http_logger.log(
+        level,
+        "",
+        extra={
+            "status": status,
+            "address": address,
+            "method": method,
+            "path": path,
+        }
+    )
 
 
 class Server:
@@ -53,11 +82,12 @@ class Server:
 
         return environ
 
-    def handle_connection(self, conn: socket.socket, address: tuple):
+    def handle_connection(self, conn: socket.socket, address: tuple[str, int]):
         with conn:
             environ = self.get_environ(conn)
 
             def start_response(status: str, headers: list[tuple[str, str]], exc_info=None, /):
+                log_response(status, address, method=environ["REQUEST_METHOD"], path=environ["PATH_INFO"])
                 conn.send(b"HTTP/1.1 " + status.encode() + b"\r\n")
                 for name, value in headers:
                     conn.send(name.encode() + b": " + value.encode() + b"\r\n")
