@@ -1,4 +1,8 @@
 name: Publish Package to pypi
+on:
+  push:
+    branches:
+      - main
 jobs:
   build_and_publish:
     runs-on: python:latest
